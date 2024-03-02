@@ -70,15 +70,16 @@ func (s *server) Serve(rw http.ResponseWriter, req *http.Request) {
 }
 
 // NewServer creates a new server instance with the specified URL and reverse proxy.
-func NewServer(rawURL string, rp *httputil.ReverseProxy) (Server, error) {
+func NewServer(rawURL string) (Server, error) {
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
 	}
+
 	return &server{
 		url:          parsedURL,
 		alive:        true, // Will use health checks to update.
 		activeCons:   0,
-		reverseProxy: rp,
+		reverseProxy: httputil.NewSingleHostReverseProxy(parsedURL),
 	}, nil
 }
