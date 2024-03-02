@@ -1,5 +1,5 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
+# Covers Golang
+# https://github.com/github/gitignore/blob/main/Go.gitignore
 #
 # Binaries for programs and plugins
 *.exe
@@ -19,3 +19,30 @@
 
 # Go workspace file
 go.work
+
+
+# Covers JetBrains IDE: Goland
+# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+
+# User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/.gitignore
+
+# AWS User-specific
+.idea/**/aws.xml
+
+# Sensitive or high-churn files
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+# Editor-based Rest Client
+.idea/httpRequests
