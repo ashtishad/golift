@@ -105,3 +105,18 @@ func (sp *serverPool) ListServers() []Server {
 
 	return servers
 }
+
+// UpdateServerStatus changes a server's alive status, allowing for dynamic health management.
+func (sp *serverPool) UpdateServerStatus(srvID string, alive bool) error {
+	sp.mux.Lock()
+	defer sp.mux.Unlock()
+
+	if srv, exists := sp.servers[srvID]; exists {
+		// If the server is found, update its alive status.
+		srv.SetAlive(alive)
+		return nil
+	}
+
+	// If the server is not found, return an error.
+	return fmt.Errorf("server with ID %s not found", srvID)
+}
