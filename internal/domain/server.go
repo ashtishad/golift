@@ -9,21 +9,21 @@ import (
 	"sync/atomic"
 )
 
-// Server defines operations for a load-balanced server.
-// SetAlive sets the server's alive status.
-// IsAlive checks if the server is currently alive.
-// GetURL returns the server's URL.
-// GetActiveConnections returns the number of active connections to the server.
-// Serve forwards an HTTP request to the server using a reverse proxy.
+// Server defines the operations necessary for a server within a load-balanced environment.
 type Server interface {
+	// SetAlive updates the server's alive status, enabling dynamic health management.
 	SetAlive(alive bool)
 
+	// IsAlive reports the current alive status, facilitating health checks and load balancing decisions.
 	IsAlive() bool
 
+	// GetURL provides the server's URL, essential for routing and proxying requests.
 	GetURL() *url.URL
 
+	// GetActiveConnections returns the current count of active connections, aiding in load balancing strategies like Least Connections.
 	GetActiveConnections() int
 
+	// Serve proxies an incoming HTTP request to the server, central to the server's request handling capability.
 	Serve(w http.ResponseWriter, r *http.Request)
 }
 
