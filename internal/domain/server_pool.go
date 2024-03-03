@@ -96,7 +96,7 @@ func (sp *serverPool) ListServers() []Server {
 	sp.mux.RLock()
 	defer sp.mux.RUnlock()
 
-	var servers []Server
+	servers := make([]Server, 0)
 
 	// Iterate over the map of servers and add each server to the slice.
 	for _, srv := range sp.servers {
