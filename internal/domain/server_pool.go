@@ -21,9 +21,6 @@ type ServerPooler interface {
 	// ListServers lists all servers, aiding in monitoring and scaling decisions.
 	ListServers() []Server
 
-	// SelectServer picks a server based on the load balancing strategy, optimizing request distribution.
-	SelectServer() Server
-
 	// UpdateServerStatus changes a server's alive status, allowing for dynamic health management.
 	UpdateServerStatus(srvID string, alive bool) error
 }
