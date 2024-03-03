@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -46,6 +47,7 @@ func (s *server) SetAlive(a bool) {
 func (s *server) IsAlive() bool {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
+
 	return s.alive
 }
 
@@ -73,7 +75,7 @@ func (s *server) Serve(rw http.ResponseWriter, req *http.Request) {
 func NewServer(rawURL string) (Server, error) {
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to parse rawURL:%w", err)
 	}
 
 	return &server{
