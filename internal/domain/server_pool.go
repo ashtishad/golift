@@ -1,10 +1,15 @@
 package domain
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+
+	"github.com/ashtishad/golift/pkg/srvidgen"
+)
 
 // ServerPooler defines operations for managing a dynamic set of server instances for load balancing.
 type ServerPooler interface {
-	// AddServer adds a new server to the pool, generates id and handling errors like duplicates.
+	// AddServer adds a new server to the pool, generates server id and handling errors like duplicates.
 	AddServer(srv Server) error
 
 	// RemoveServer removes a server by ID, useful for maintenance or decommissioning.
@@ -24,6 +29,31 @@ type ServerPooler interface {
 }
 
 type serverPool struct {
-	servers map[string]server
+	servers map[string]Server
 	mux     sync.RWMutex
+}
+
+// AddServer adds a new server to the pool, generates server id and handling errors like duplicates.
+// returns an error if something went wrong.
+func (sp *serverPool) AddServer(srv Server) error {
+	sp.mux.Lock()
+	defer sp.mux.Unlock()
+
+	// Generate server id with hash value of server URL and port
+	srvID, err := srvidgen.GenerateServerID(srv.GetURL().String())
+	if err != nil {
+		return fmt.Errorf("failed to generate server id from server URL: %w", err)
+	}
+
+	// Check if the server already exists in the pool to avoid duplicates.
+	if _, exists := sp.servers[srvID]; exists {
+		return fmt.Errorf("server with ID %s already exists in the pool", srvID)
+	}
+
+	srv.SetID(srvID)
+
+	// Add the server to the pool.
+	sp.servers[srvID] = srv
+
+	return nil
 }
