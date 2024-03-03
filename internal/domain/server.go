@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -8,31 +9,45 @@ import (
 	"sync/atomic"
 )
 
-// Server defines operations for a load-balanced server.
-// SetAlive sets the server's alive status.
-// IsAlive checks if the server is currently alive.
-// GetURL returns the server's URL.
-// GetActiveConnections returns the number of active connections to the server.
-// Serve forwards an HTTP request to the server using a reverse proxy.
+// Server defines the operations necessary for a server within a load-balanced environment.
 type Server interface {
-	SetAlive(alive bool)
-
-	IsAlive() bool
-
-	GetURL() *url.URL
-
-	GetActiveConnections() int
-
-	Serve(w http.ResponseWriter, r *http.Request)
+	SetAlive(alive bool)                          // Updates the server's alive status.
+	IsAlive() bool                                // Reports the current alive status.
+	GetURL() *url.URL                             // Provides the server's URL.
+	GetActiveConnections() int                    // Returns the current count of active connections.
+	Serve(w http.ResponseWriter, r *http.Request) // Proxies an incoming HTTP request.
+	GetID() string                                // Returns a unique identifier for the server.
 }
 
 // server implements the Server interface, representing a backend server.
 type server struct {
+	id           string                 // Unique identifier for the server.
 	url          *url.URL               // URL of the server.
 	alive        bool                   // Indicates whether the server is alive.
 	mux          sync.RWMutex           // Protects access to the server's state.
 	activeCons   int32                  // Count of active connections, managed atomically.
 	reverseProxy *httputil.ReverseProxy // Used to forward requests to the server.
+}
+
+// NewServer creates a new server instance with the specified URL and reverse proxy.
+func NewServer(id, rawURL string) (Server, error) {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse rawURL: %w", err)
+	}
+
+	return &server{
+		id:           id,
+		url:          parsedURL,
+		alive:        true, // Will use health checks to update.
+		activeCons:   0,
+		reverseProxy: httputil.NewSingleHostReverseProxy(parsedURL),
+	}, nil
+}
+
+// GetID returns the server's unique identifier.
+func (s *server) GetID() string {
+	return s.id
 }
 
 // SetAlive updates the server's alive status. It safely handles concurrent updates.
@@ -67,19 +82,4 @@ func (s *server) Serve(rw http.ResponseWriter, req *http.Request) {
 	defer atomic.AddInt32(&s.activeCons, -1)
 
 	s.reverseProxy.ServeHTTP(rw, req)
-}
-
-// NewServer creates a new server instance with the specified URL and reverse proxy.
-func NewServer(rawURL string) (Server, error) {
-	parsedURL, err := url.Parse(rawURL)
-	if err != nil {
-		return nil, err
-	}
-
-	return &server{
-		url:          parsedURL,
-		alive:        true, // Will use health checks to update.
-		activeCons:   0,
-		reverseProxy: httputil.NewSingleHostReverseProxy(parsedURL),
-	}, nil
 }
