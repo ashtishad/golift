@@ -75,3 +75,18 @@ func (sp *serverPool) RemoveServer(srvID string) error {
 
 	return nil
 }
+
+// GetServer retrieves a server by ID for status checks or updates.
+// It returns the server if found. Returns an error If the server is not found,
+func (sp *serverPool) GetServer(srvID string) (Server, error) {
+	sp.mux.RLock()
+	defer sp.mux.RUnlock()
+
+	// Attempt to retrieve the server from the pool using its ID.
+	if srv, exists := sp.servers[srvID]; exists {
+		return srv, nil
+	}
+
+	// If the server is not found, return an error.
+	return nil, fmt.Errorf("server with ID %s not found", srvID)
+}
