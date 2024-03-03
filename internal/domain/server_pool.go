@@ -26,8 +26,9 @@ type ServerPooler interface {
 }
 
 type serverPool struct {
-	servers map[string]Server
-	mux     sync.RWMutex
+	servers  map[string]Server
+	mux      sync.RWMutex
+	strategy LoadBalancer // For selecting a server based on Load Balancing Strategy
 }
 
 // AddServer adds a new server to the pool, generates server id and handling errors like duplicates.
@@ -116,4 +117,11 @@ func (sp *serverPool) UpdateServerStatus(srvID string, alive bool) error {
 
 	// If the server is not found, return an error.
 	return fmt.Errorf("server with ID %s not found", srvID)
+}
+
+func NewServerPool(strategy LoadBalancer) ServerPooler {
+	return &serverPool{
+		servers:  make(map[string]Server),
+		strategy: strategy,
+	}
 }
