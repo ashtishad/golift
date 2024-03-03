@@ -17,6 +17,7 @@ type Server interface {
 	GetActiveConnections() int                    // Returns the current count of active connections.
 	Serve(w http.ResponseWriter, r *http.Request) // Proxies an incoming HTTP request.
 	GetID() string                                // Returns a unique identifier for the server.
+	SetID(srvID string)                           // Sets a unique identifier for the server.
 }
 
 // server implements the Server interface, representing a backend server.
@@ -30,14 +31,13 @@ type server struct {
 }
 
 // NewServer creates a new server instance with the specified URL and reverse proxy.
-func NewServer(id, rawURL string) (Server, error) {
+func NewServer(rawURL string) (Server, error) {
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse rawURL: %w", err)
 	}
 
 	return &server{
-		id:           id,
 		url:          parsedURL,
 		alive:        true, // Will use health checks to update.
 		activeCons:   0,
@@ -48,6 +48,11 @@ func NewServer(id, rawURL string) (Server, error) {
 // GetID returns the server's unique identifier.
 func (s *server) GetID() string {
 	return s.id
+}
+
+// SetID returns the server's unique identifier.
+func (s *server) SetID(srvID string) {
+	s.id = srvID
 }
 
 // SetAlive updates the server's alive status. It safely handles concurrent updates.
@@ -61,6 +66,7 @@ func (s *server) SetAlive(a bool) {
 func (s *server) IsAlive() bool {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
+
 	return s.alive
 }
 
