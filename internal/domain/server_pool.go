@@ -90,3 +90,18 @@ func (sp *serverPool) GetServer(srvID string) (Server, error) {
 	// If the server is not found, return an error.
 	return nil, fmt.Errorf("server with ID %s not found", srvID)
 }
+
+// ListServers lists all servers, returns a slice containing all the servers currently in the pool.
+func (sp *serverPool) ListServers() []Server {
+	sp.mux.RLock()
+	defer sp.mux.RUnlock()
+
+	var servers []Server
+
+	// Iterate over the map of servers and add each server to the slice.
+	for _, srv := range sp.servers {
+		servers = append(servers, srv)
+	}
+
+	return servers
+}
