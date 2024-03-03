@@ -57,3 +57,21 @@ func (sp *serverPool) AddServer(srv Server) error {
 
 	return nil
 }
+
+// RemoveServer removes a server by ID, It returns an error if the server to be removed does not exist in the pool.
+// Used The `delete` function, safe to call even if the key is not present in the map,
+// However, the existence check is performed to provide specific error feedback.
+func (sp *serverPool) RemoveServer(srvID string) error {
+	sp.mux.Lock()
+	defer sp.mux.Unlock()
+
+	// Check if the server exists in the pool.
+	if _, exists := sp.servers[srvID]; !exists {
+		return fmt.Errorf("server with ID %s does not exist in the pool", srvID)
+	}
+
+	// Remove the server from the pool.
+	delete(sp.servers, srvID)
+
+	return nil
+}
