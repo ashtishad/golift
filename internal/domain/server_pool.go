@@ -21,7 +21,7 @@ type ServerPooler interface {
 	// ListServers lists all servers, aiding in monitoring and scaling decisions.
 	ListServers() []Server
 
-	// SelectServer picks a server based on the load balancing strategy, optimizing request distribution.
+	// SelectServer picks a server based on the load balancing strategy.
 	SelectServer() Server
 
 	// UpdateServerStatus changes a server's alive status, allowing for dynamic health management.
@@ -29,8 +29,9 @@ type ServerPooler interface {
 }
 
 type serverPool struct {
-	servers map[string]Server
-	mux     sync.RWMutex
+	servers  map[string]Server
+	mux      sync.RWMutex
+	strategy LoadBalancer
 }
 
 // AddServer adds a new server to the pool, generates server id and handling errors like duplicates.
@@ -119,4 +120,24 @@ func (sp *serverPool) UpdateServerStatus(srvID string, alive bool) error {
 
 	// If the server is not found, return an error.
 	return fmt.Errorf("server with ID %s not found", srvID)
+}
+
+// SelectServer picks a server based on the load balancing strategy.
+func (sp *serverPool) SelectServer() Server {
+	sp.mux.RLock()
+	defer sp.mux.RUnlock()
+
+	var serversSlice []Server
+	for _, srv := range sp.servers {
+		serversSlice = append(serversSlice, srv)
+	}
+
+	return sp.strategy.SelectServer(serversSlice)
+}
+
+func NewServerPool(strategy LoadBalancer) ServerPooler {
+	return &serverPool{
+		servers:  make(map[string]Server),
+		strategy: strategy,
+	}
 }
