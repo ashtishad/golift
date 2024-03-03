@@ -66,6 +66,7 @@ func (s *server) SetAlive(a bool) {
 func (s *server) IsAlive() bool {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
+
 	return s.alive
 }
 

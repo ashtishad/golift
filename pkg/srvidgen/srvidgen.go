@@ -42,6 +42,7 @@ func GenerateServerID(serverURL string) (string, error) {
 	return hexString, nil
 }
 
+// nolint:lll
 /*
 1. UUID (Universally Unique Identifier):
 Pros: Easy to generate using Go's standard library (uuid package) or third-party libraries. UUIDs are highly unlikely to collide, making them ideal for ensuring uniqueness across a distributed system.
