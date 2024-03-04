@@ -1,34 +1,48 @@
-# GoLift: A Scalable Load Balancing Solution in Go
+## GoLift: A Scalable Load Balancing Solution in Go
 
 ### Different Load Balancing Algorithms
 
-1. Round Robin: Distributes requests evenly across all servers, regardless of their current load.
-2. Weighted Round Robin: Similar to Round Robin but considers the capacity of each server, allocating more requests to higher-capacity servers.
-3. Least Connections: Directs new requests to the server with the fewest active connections, aiming for a fair distribution based on current load.
+- **Round Robin**: Distributes requests evenly across all servers, regardless of their current load.
+- **Weighted Round Robin**: Allocates more requests to servers with higher capacity, refining the Round Robin approach.
+- **Least Connections**: Prefers servers with the fewest active connections, promoting fair load distribution.
 
-### Why Am I Choosing the Least Connection Algorithm?
+### Why Am I Choosing the Least Connection with Round Robin Tiebreaker Algorithm?
 
-1. Efficiency in High Traffic: Thrives under variable load conditions, ensuring no single server is overwhelmed.
-2. Fair Load Distribution: Ideal for when servers have differing capacities, as it considers the current server load rather than a fixed rotation or capacity.
-3. Dynamic Adaptability: Automatically adjusts to changes in server availability or traffic patterns, making it suitable for environments with fluctuating demands.
-4. Enhanced User Experience: Minimizes response times by avoiding overloaded servers, leading to faster, more reliable service delivery.
+The Least Connection strategy, enhanced with a Round Robin tiebreaker, combines efficiency and fairness, especially suitable for high-traffic conditions. It dynamically adapts to server load changes, ensuring optimal resource utilization and user experience without overwhelming any single server.
 
 ### Ideal Scenario
 
-In a distributed, high-traffic environment, such as an e-commerce platform during a flash sale, the Least Connections method can prevent server overload by dynamically distributing incoming requests to the least busy servers, ensuring smooth and efficient operation even under intense demand.
+This approach excels in distributed environments where demand fluctuates, such as e-commerce sites during sales events. It ensures that incoming requests are evenly distributed, preventing server overload and maintaining smooth operation.
 
 ### Algorithmic Explanation
-GoLift employs the Least Connections algorithm for optimal request distribution:
 
-1. Identify Servers: Select servers with the lowest active connections.
-2. Round-Robin Tiebreaker: If multiple servers share the lowest count, employ Round Robin to assign the request.
-3. Single Server Assignment: Directly assign the request to a lone server with the fewest connections.
+GoLift implements this refined strategy as follows:
+
+1. **Identify Servers**: Determines servers with the lowest active connections.
+2. **Single Server Assignment**: Directly assigns requests if one server has the fewest connections.
+3. **Round-Robin Tiebreaker**: When multiple servers have the same number of connections, it selects in a Round-Robin manner.
+
+### Expected Behavior
+
+- **Single Server Selection**: For servers `{server3: 0, others: 1+}`, `server3` is chosen.
+- **Round-Robin Cycling**: With `{all servers: 1 connection}`, it cycles from `server1` to `server6`, ensuring equitable distribution.
+- **No Servers Available**: Returns `nil` if no servers are alive, indicating a need for intervention.
+- **Multiple Servers with Least Connections**: Given `{server5: 0, server6: 0, others: 2+}`, selects `server5` or `server6` based on Round-Robin position.
+- **Round-Robin Across All Servers**: Continues cycling through all servers `{all servers: 1 connection}`, maintaining fairness.
 
 ### Advantages
-1. Reduced Server Overload: Prioritizes servers with fewer connections, mitigating overload risks.
-2. Enhanced Reliability: Offers more responsive and reliable service compared to rotation-based methods.
+
+- **Reduced Server Overload**: Smartly balances load to prevent any server from being overwhelmed.
+- **Enhanced Reliability**: More reliable service delivery by evenly distributing requests based on server capacity and current load.
 
 ### Limitations
-1. Troubleshooting Complexity: Non-deterministic nature complicates diagnostics.
-2. Increased Processing: Requires more computation for decision-making.
-3. Capacity Ignorance: Does not account for server capacity, potentially mis-allocating resources.
+
+- **Troubleshooting Complexity**: The dynamic nature of the strategy can complicate issue diagnosis.
+- **Increased Processing**: The need for constant computation of server loads and decision-making.
+- **Capacity Ignorance**: Focuses on connection counts without considering the actual capacity of servers.
+
+### How I Overcame the Limitations
+
+- **Efficient Data Structures**: Implemented optimized data handling to reduce processing overhead.
+- **Health Checks**: Integrated server health checks to dynamically adjust the pool based on real-time server status, addressing capacity concerns.
+- **Logging and Monitoring**: Enhanced diagnostics with detailed logging and monitoring for better insight and quicker troubleshooting.
