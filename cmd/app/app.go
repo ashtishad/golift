@@ -14,12 +14,12 @@ import (
 
 // StartServers launches n number of HTTP servers and returns them for management.
 func StartServers(startingPort int, n int) []*http.Server {
-	var servers []*http.Server
+	servers := make([]*http.Server, 0, n)
 
-	for i := 0; i < n; i++ {
-		server := &http.Server{
+	for i := range n {
+		srv := &http.Server{
 			Addr: net.JoinHostPort("", strconv.Itoa(startingPort+i)),
-			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				_, _ = fmt.Fprintf(w, "Hello World from server on port %d!", startingPort+i)
 			}),
 			ReadTimeout:       5 * time.Second,
@@ -28,15 +28,15 @@ func StartServers(startingPort int, n int) []*http.Server {
 			ReadHeaderTimeout: 2 * time.Second,
 		}
 
-		servers = append(servers, server)
+		servers = append(servers, srv)
 
 		go func(s *http.Server) {
 			if err := s.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 				log.Fatalf("failed to start server: %v", err)
 			}
-		}(server)
+		}(srv)
 
-		log.Printf("Server-%d listening on port %s", i+1, server.Addr)
+		log.Printf("Server-%d listening on port %s", i+1, srv.Addr)
 	}
 
 	return servers
@@ -46,7 +46,7 @@ func StartLoadBalancer(loadBalancerPort, port, srvCnt int) {
 	lc := domain.LeastConnection{}
 	serverPool := domain.NewServerPool(&lc, srvCnt)
 
-	for i := 0; i < srvCnt; i++ {
+	for range srvCnt {
 		port++
 		serverURL := fmt.Sprintf("http://localhost:%d", port)
 		srv, err := domain.NewServer(serverURL)
