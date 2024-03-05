@@ -46,3 +46,41 @@ GoLift implements this refined strategy as follows:
 - **Efficient Data Structures**: Implemented optimized data handling to reduce processing overhead.
 - **Health Checks**: Integrated server health checks to dynamically adjust the pool based on real-time server status, addressing capacity concerns.
 - **Logging and Monitoring**: Enhanced diagnostics with detailed logging and monitoring for better insight and quicker troubleshooting.
+
+
+### How To Run The App
+
+###### Option 1: Using Makefile
+
+To run the application using the Makefile:
+
+1. Open your terminal and navigate to the project's root directory.
+2. (Optional) Adjust the environment variables in the Makefile as necessary to fit your setup.
+3. Execute the command: `make run`
+
+
+###### Option 2: Using Docker
+
+To run the application using Docker:
+
+1. Ensure the Docker Desktop application is running.
+2. Open your terminal and navigate to the project's root directory.
+3. Build the Docker image for the application by executing: `docker build -t golift:latest .`
+4. Start the application using Docker Compose with the command: `docker compose up`
+
+
+###### Expected Output After Running The App
+
+Regardless of the method chosen to run the application, you should observe output similar to the following in your terminal, indicating that the servers and the load balancer are up and running:
+
+
+```
+server-1         | Server listening on port :8000
+server-2         | Server listening on port :8001
+server-3         | Server listening on port :8002
+server-4         | Server listening on port :8003
+server-5         | Server listening on port :8004
+load_balancer    | Load Balancer listening on port 8080
+
+```
+
