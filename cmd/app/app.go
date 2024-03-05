@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/ashtishad/golift/internal/domain"
 )
 
 // StartServers launches n number of HTTP servers and returns them for management.
@@ -31,4 +33,30 @@ func StartServers(startingPort int, n int) []*http.Server {
 	}
 
 	return servers
+}
+
+func StartLoadBalancer(loadBalancerPort int, startingPort int, srvCnt int) {
+	lc := domain.LeastConnection{}
+	serverPool := domain.NewServerPool(&lc)
+
+	for i := 0; i < srvCnt; i++ {
+		port := startingPort + i
+		serverURL := fmt.Sprintf("http://localhost:%d", port)
+		srv, err := domain.NewServer(serverURL)
+
+		if err != nil {
+			log.Fatalf("error creating server instance for URL '%s': %v", serverURL, err)
+		}
+
+		if err := serverPool.AddServer(srv); err != nil {
+			return
+		}
+	}
+
+	// Setup and start the load balancer HTTP server.
+	http.HandleFunc("/", proxyRequestHandler(serverPool))
+
+	log.Printf("Load Balancer listening on port %d", loadBalancerPort)
+
+	_ = http.ListenAndServe(fmt.Sprintf(":%d", loadBalancerPort), nil)
 }
