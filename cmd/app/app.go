@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ashtishad/golift/internal/domain"
 )
@@ -56,7 +57,18 @@ func StartLoadBalancer(loadBalancerPort int, startingPort int, srvCnt int) {
 	// Setup and start the load balancer HTTP server.
 	http.HandleFunc("/", proxyRequestHandler(serverPool))
 
+	// Create a custom http.Server with timeouts
+	s := &http.Server{
+		Addr:         fmt.Sprintf(":%d", loadBalancerPort),
+		Handler:      proxyRequestHandler(serverPool),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
+
 	log.Printf("Load Balancer listening on port %d", loadBalancerPort)
 
-	_ = http.ListenAndServe(fmt.Sprintf(":%d", loadBalancerPort), nil)
+	if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatalf("failed to start load balancer: %v", err)
+	}
 }
