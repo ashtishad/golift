@@ -118,5 +118,13 @@ load_balancer    | Load Balancer listening on port 8080
 └── readme.md                      ← Project documentation and setup instructions.
 
 
+```
+
+#### Example Request
+
+```
+curl --location '127.0.0.1:8080'
+
+GET -> 127.0.0.1:8080
 
 ```
