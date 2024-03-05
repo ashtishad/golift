@@ -32,3 +32,19 @@ func GetPorts() (int, int) {
 
 	return startingPort, loadBalancerPort
 }
+
+// GetServerCount retrieves the desired number of server instances to be launched.
+// It returns a default count of 5 if the environment variable "NUM_OF_SERVERS" is not set or contains an invalid value.
+func GetServerCount() int {
+	srvCnt := 5
+
+	if sp, exists := os.LookupEnv("NUM_OF_SERVERS"); exists {
+		if cnt, err := strconv.Atoi(sp); err == nil {
+			srvCnt = cnt
+		} else {
+			log.Printf("invalid NUM_OF_SERVERS value, using default %d\n", srvCnt)
+		}
+	}
+
+	return srvCnt
+}

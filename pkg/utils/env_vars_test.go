@@ -65,3 +65,44 @@ func TestGetPorts(t *testing.T) {
 		})
 	}
 }
+
+func TestGetServerCount(t *testing.T) {
+	tests := []struct {
+		name             string
+		numOfServersEnv  string // Value for NUM_OF_SERVERS environment variable
+		expectedSrvCount int
+	}{
+		{
+			name:             "Valid environment variable",
+			numOfServersEnv:  "10",
+			expectedSrvCount: 10,
+		},
+		{
+			name:             "Invalid environment variable",
+			numOfServersEnv:  "invalid",
+			expectedSrvCount: 5, // Default value
+		},
+		{
+			name:             "Environment variable not set",
+			expectedSrvCount: 5, // Default value
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.numOfServersEnv != "" {
+				os.Setenv("NUM_OF_SERVERS", tt.numOfServersEnv)
+			}
+
+			t.Cleanup(func() {
+				os.Unsetenv("NUM_OF_SERVERS")
+			})
+
+			srvCnt := GetServerCount()
+
+			if srvCnt != tt.expectedSrvCount {
+				t.Errorf("GetServerCount() = %d, want %d", srvCnt, tt.expectedSrvCount)
+			}
+		})
+	}
+}
