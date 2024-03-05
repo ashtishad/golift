@@ -34,7 +34,7 @@ func StartServers(startingPort int, n int) []*http.Server {
 			}
 		}(server)
 
-		log.Printf("Server listening on port %s", server.Addr)
+		log.Printf("Server%d listening on port %s", i+1, server.Addr)
 	}
 
 	return servers
