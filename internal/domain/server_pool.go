@@ -127,7 +127,7 @@ func (sp *serverPool) SelectServer() Server {
 	sp.mux.RLock()
 	defer sp.mux.RUnlock()
 
-	serversSlice := make([]Server, 0)
+	serversSlice := make([]Server, 0, len(sp.servers))
 	for _, srv := range sp.servers {
 		serversSlice = append(serversSlice, srv)
 	}
@@ -135,9 +135,9 @@ func (sp *serverPool) SelectServer() Server {
 	return sp.strategy.SelectServer(serversSlice)
 }
 
-func NewServerPool(strategy LoadBalancer) ServerPooler {
+func NewServerPool(strategy LoadBalancer, cnt int) ServerPooler {
 	return &serverPool{
-		servers:  make(map[string]Server),
+		servers:  make(map[string]Server, cnt),
 		strategy: strategy,
 	}
 }
