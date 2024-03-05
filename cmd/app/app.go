@@ -16,7 +16,7 @@ import (
 func StartServers(startingPort int, n int) []*http.Server {
 	var servers []*http.Server
 
-	for i := range n {
+	for i := 0; i < n; i++ {
 		server := &http.Server{
 			Addr: net.JoinHostPort("", strconv.Itoa(startingPort+i)),
 			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +46,7 @@ func StartLoadBalancer(loadBalancerPort, port, srvCnt int) {
 	lc := domain.LeastConnection{}
 	serverPool := domain.NewServerPool(&lc, srvCnt)
 
-	for range srvCnt {
+	for i := 0; i < srvCnt; i++ {
 		port++
 		serverURL := fmt.Sprintf("http://localhost:%d", port)
 		srv, err := domain.NewServer(serverURL)
