@@ -75,12 +75,48 @@ Regardless of the method chosen to run the application, you should observe outpu
 
 
 ```
-server-1         | Server listening on port :8000
-server-2         | Server listening on port :8001
-server-3         | Server listening on port :8002
-server-4         | Server listening on port :8003
-server-5         | Server listening on port :8004
+server-1         | Server1 listening on port :8000
+server-2         | Server2 listening on port :8001
+server-3         | Server3 listening on port :8002
+server-4         | Server4 listening on port :8003
+server-5         | Server5 listening on port :8004
 load_balancer    | Load Balancer listening on port 8080
 
 ```
 
+#### Project Structure
+
+```plaintext
+├── .github
+│   └── workflows
+│       └── go-ci.yaml             ← GitHub Actions CI workflows (Build, Test, Lint).
+├── cmd
+│   └── app
+│       ├── app.go                 ← Main application logic for consumer servers and load balancer setup.
+│       └── handler.go             ← Forwarded http Request with reverse proxy.
+├── internal
+│   └── domain
+│       ├── load_balancer.go       ← Load balancer logic implementation(Least Connection Strategy).
+│       ├── load_balancer_test.go  ← Unit Tests for load balancer functionality.
+│       ├── server.go              ← Server instance definition and bheaviour.
+│       └── server_test.go         ← Unit Tests for server functionality.
+│       ├── server_pool.go         ← Server pool for maintaining a list of servers.
+├── pkg
+│   └── srvvidgen
+│       ├── srvvidgen.go           ← Server ID generation logic(Hash value Server URL and Port).
+│       └── srvvidgen_test.go      ← Unit Tests for server ID generation.
+├── utils
+│   ├── env_vars.go                ← Utility functions for environment variable management.
+│   └── env_vars_test.go           ← Tests for environment variable utility functions.
+├── .gitignore                     ← Specifies intentionally untracked files to ignore.
+├── .golangci.yaml                 ← Configuration for golangci-lint.
+├── compose.yaml                   ← Docker service setup for development environments.
+├── Dockerfile                     ← Dockerfile for building the GoLift:latest application image.
+├── go.mod                         ← Go module dependencies.
+├── main.go                        ← Entry point to start the application services.
+├── Makefile                       ← Make commands for building and running the application.
+└── readme.md                      ← Project documentation and setup instructions.
+
+
+
+```
