@@ -1,4 +1,5 @@
-## GoLift: A Scalable Load Balancing Solution in Go
+## go-lift
+GoLift: A Scalable Load Balancing Solution in Go
 
 ### Different Load Balancing Algorithms
 
@@ -30,10 +31,14 @@ GoLift implements this refined strategy as follows:
 - **Multiple Servers with Least Connections**: Given `{server5: 0, server6: 0, others: 2+}`, selects `server5` or `server6` based on Round-Robin position.
 - **Round-Robin Across All Servers**: Continues cycling through all servers `{all servers: 1 connection}`, maintaining fairness.
 
+<p align="right"><a href="#go-lift">↑ Top</a></p>
+
 ### Advantages
 
 - **Reduced Server Overload**: Smartly balances load to prevent any server from being overwhelmed.
 - **Enhanced Reliability**: More reliable service delivery by evenly distributing requests based on server capacity and current load.
+
+<p align="right"><a href="#go-lift">↑ Top</a></p>
 
 ### Limitations
 
@@ -41,12 +46,15 @@ GoLift implements this refined strategy as follows:
 - **Increased Processing**: The need for constant computation of server loads and decision-making.
 - **Capacity Ignorance**: Focuses on connection counts without considering the actual capacity of servers.
 
+<p align="right"><a href="#go-lift">↑ Top</a></p>
+
 ### How I Overcame the Limitations
 
 - **Efficient Data Structures**: Implemented optimized data handling to reduce processing overhead.
 - **Health Checks**: Integrated server health checks to dynamically adjust the pool based on real-time server status, addressing capacity concerns.
 - **Logging and Monitoring**: Enhanced diagnostics with detailed logging and monitoring for better insight and quicker troubleshooting.
 
+<p align="right"><a href="#go-lift">↑ Top</a></p>
 
 ### How To Run The App
 
@@ -68,6 +76,7 @@ To run the application using Docker:
 3. Build the Docker image for the application by executing: `docker build -t golift:latest .`
 4. Start the application using Docker Compose with the command: `docker compose up`
 
+<p align="right"><a href="#go-lift">↑ Top</a></p>
 
 ###### Expected Output After Running The App
 
@@ -83,6 +92,7 @@ server-5         | Server5 listening on port :8004
 load_balancer    | Load Balancer listening on port 8080
 
 ```
+<p align="right"><a href="#go-lift">↑ Top</a></p>
 
 #### Project Structure
 
@@ -119,6 +129,7 @@ load_balancer    | Load Balancer listening on port 8080
 
 
 ```
+<p align="right"><a href="#go-lift">↑ Top</a></p>
 
 #### Example Request
 
@@ -128,3 +139,4 @@ curl --location '127.0.0.1:8080'
 GET -> 127.0.0.1:8080
 
 ```
+<p align="right"><a href="#go-lift">↑ Top</a></p>
