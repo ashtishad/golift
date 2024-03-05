@@ -20,9 +20,6 @@ type LeastConnection struct {
 // 3: If multiple servers share the lowest count, employ Round Robin to assign the request.
 // 4. If no servers are alive or available, return nil.
 func (lc *LeastConnection) SelectServer(servers []Server) Server {
-	lc.mux.Lock()
-	defer lc.mux.Unlock()
-
 	// Find the minimum number of connections.
 	minConns := int(^uint(0) >> 1)
 	var candidates []Server
@@ -46,6 +43,8 @@ func (lc *LeastConnection) SelectServer(servers []Server) Server {
 	}
 
 	// Step 3: If multiple servers have the least connections, use Round-Robin.
+	lc.mux.Lock()
+	defer lc.mux.Unlock()
 	if len(candidates) > 1 {
 		// Increment lastSelectedIndex safely.
 		lc.lastSelectedIndex = (lc.lastSelectedIndex + 1) % len(servers)

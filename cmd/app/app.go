@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/ashtishad/golift/internal/domain"
@@ -14,9 +16,9 @@ import (
 func StartServers(startingPort int, n int) []*http.Server {
 	var servers []*http.Server
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		server := &http.Server{
-			Addr: fmt.Sprintf(":%d", startingPort+i),
+			Addr: net.JoinHostPort("", strconv.Itoa(startingPort+i)),
 			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				_, _ = fmt.Fprintf(w, "Hello World from server on port %d!", startingPort+i)
 			}),
@@ -34,21 +36,20 @@ func StartServers(startingPort int, n int) []*http.Server {
 			}
 		}(server)
 
-		log.Printf("Server%d listening on port %s", i+1, server.Addr)
+		log.Printf("Server-%d listening on port %s", i+1, server.Addr)
 	}
 
 	return servers
 }
 
-func StartLoadBalancer(loadBalancerPort int, startingPort int, srvCnt int) {
+func StartLoadBalancer(loadBalancerPort, port, srvCnt int) {
 	lc := domain.LeastConnection{}
-	serverPool := domain.NewServerPool(&lc)
+	serverPool := domain.NewServerPool(&lc, srvCnt)
 
-	for i := 0; i < srvCnt; i++ {
-		port := startingPort + i
+	for range srvCnt {
+		port++
 		serverURL := fmt.Sprintf("http://localhost:%d", port)
 		srv, err := domain.NewServer(serverURL)
-
 		if err != nil {
 			log.Fatalf("error creating server instance for URL '%s': %v", serverURL, err)
 		}
@@ -63,7 +64,7 @@ func StartLoadBalancer(loadBalancerPort int, startingPort int, srvCnt int) {
 
 	// Create a custom http.Server with timeouts
 	s := &http.Server{
-		Addr:         fmt.Sprintf(":%d", loadBalancerPort),
+		Addr:         net.JoinHostPort("", strconv.Itoa(loadBalancerPort)),
 		Handler:      proxyRequestHandler(serverPool),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
