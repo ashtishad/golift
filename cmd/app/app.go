@@ -18,15 +18,19 @@ func StartServers(startingPort int, n int) []*http.Server {
 		server := &http.Server{
 			Addr: fmt.Sprintf(":%d", startingPort+i),
 			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprintf(w, "Hello World from server on port %d!", startingPort+i)
+				_, _ = fmt.Fprintf(w, "Hello World from server on port %d!", startingPort+i)
 			}),
+			ReadTimeout:       5 * time.Second,
+			WriteTimeout:      10 * time.Second,
+			IdleTimeout:       15 * time.Second,
+			ReadHeaderTimeout: 2 * time.Second,
 		}
 
 		servers = append(servers, server)
 
 		go func(s *http.Server) {
 			if err := s.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-				log.Fatalf("Failed to start server: %v", err)
+				log.Fatalf("failed to start server: %v", err)
 			}
 		}(server)
 
