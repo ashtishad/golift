@@ -127,7 +127,7 @@ func (sp *serverPool) SelectServer() Server {
 	sp.mux.RLock()
 	defer sp.mux.RUnlock()
 
-	var serversSlice []Server
+	serversSlice := make([]Server, 0)
 	for _, srv := range sp.servers {
 		serversSlice = append(serversSlice, srv)
 	}

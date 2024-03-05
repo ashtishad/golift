@@ -57,6 +57,7 @@ func (lc *LeastConnection) SelectServer(servers []Server) Server {
 					return candidate
 				}
 			}
+
 			lc.lastSelectedIndex = (lc.lastSelectedIndex + 1) % len(servers)
 		}
 	}

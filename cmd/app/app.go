@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ashtishad/golift/internal/domain"
 )
@@ -17,19 +18,23 @@ func StartServers(startingPort int, n int) []*http.Server {
 		server := &http.Server{
 			Addr: fmt.Sprintf(":%d", startingPort+i),
 			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprintf(w, "Hello World from server on port %d!", startingPort+i)
+				_, _ = fmt.Fprintf(w, "Hello World from server on port %d!", startingPort+i)
 			}),
+			ReadTimeout:       5 * time.Second,
+			WriteTimeout:      10 * time.Second,
+			IdleTimeout:       15 * time.Second,
+			ReadHeaderTimeout: 2 * time.Second,
 		}
 
 		servers = append(servers, server)
 
 		go func(s *http.Server) {
 			if err := s.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-				log.Fatalf("Failed to start server: %v", err)
+				log.Fatalf("failed to start server: %v", err)
 			}
 		}(server)
 
-		log.Printf("Server listening on port %s", server.Addr)
+		log.Printf("Server%d listening on port %s", i+1, server.Addr)
 	}
 
 	return servers
@@ -56,7 +61,18 @@ func StartLoadBalancer(loadBalancerPort int, startingPort int, srvCnt int) {
 	// Setup and start the load balancer HTTP server.
 	http.HandleFunc("/", proxyRequestHandler(serverPool))
 
+	// Create a custom http.Server with timeouts
+	s := &http.Server{
+		Addr:         fmt.Sprintf(":%d", loadBalancerPort),
+		Handler:      proxyRequestHandler(serverPool),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
+
 	log.Printf("Load Balancer listening on port %d", loadBalancerPort)
 
-	_ = http.ListenAndServe(fmt.Sprintf(":%d", loadBalancerPort), nil)
+	if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatalf("failed to start load balancer: %v", err)
+	}
 }
