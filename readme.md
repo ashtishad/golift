@@ -111,13 +111,13 @@ load_balancer    | Load Balancer listening on port 8080
 │       ├── server.go              ← Server instance definition and bheaviour.
 │       └── server_test.go         ← Unit Tests for server functionality.
 │       ├── server_pool.go         ← Server pool for maintaining a list of servers.
-├── pkg
-│   └── srvvidgen
+│   └── common
+│       ├── env_vars.go                ← Utility functions for environment variable management.
+│       ├── env_vars_test.go           ← Tests for environment variable utility functions.
 │       ├── srvvidgen.go           ← Server ID generation logic(Hash value Server URL and Port).
 │       └── srvvidgen_test.go      ← Unit Tests for server ID generation.
-├── utils
-│   ├── env_vars.go                ← Utility functions for environment variable management.
-│   └── env_vars_test.go           ← Tests for environment variable utility functions.
+│   └── transport
+│       └── handler.go             ← Forwarded http Request with reverse proxy.
 ├── .gitignore                     ← Specifies intentionally untracked files to ignore.
 ├── .golangci.yaml                 ← Configuration for golangci-lint.
 ├── compose.yaml                   ← Docker service setup for development environments.

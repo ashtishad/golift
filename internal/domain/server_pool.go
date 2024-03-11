@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ashtishad/golift/pkg/srvidgen"
+	"github.com/ashtishad/golift/internal/common"
 )
 
 // ServerPooler defines operations for managing a dynamic set of server instances for load balancing.
@@ -41,7 +41,7 @@ func (sp *serverPool) AddServer(srv Server) error {
 	defer sp.mux.Unlock()
 
 	// Generate server id with hash value of server URL and port
-	srvID, err := srvidgen.GenerateServerID(srv.GetURL().String())
+	srvID, err := common.GenerateServerID(srv.GetURL().String())
 	if err != nil {
 		return fmt.Errorf("failed to generate server id from server URL: %w", err)
 	}
