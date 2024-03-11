@@ -1,4 +1,4 @@
-package app
+package transport
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"github.com/ashtishad/golift/internal/domain"
 )
 
-func proxyRequestHandler(serverPool domain.ServerPooler) http.HandlerFunc {
+func ProxyRequestHandler(serverPool domain.ServerPooler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Select a server based on the load balancing algorithm.
 		targetServer := serverPool.SelectServer()

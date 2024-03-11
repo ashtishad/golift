@@ -1,4 +1,4 @@
-package srvidgen
+package common
 
 import (
 	"crypto/sha256"
