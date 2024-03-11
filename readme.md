@@ -100,10 +100,6 @@ load_balancer    | Load Balancer listening on port 8080
 ├── .github
 │   └── workflows
 │       └── go-ci.yaml             ← GitHub Actions CI workflows (Build, Test, Lint).
-├── cmd
-│   └── app
-│       ├── app.go                 ← Main application logic for consumer servers and load balancer setup.
-│       └── handler.go             ← Forwarded http Request with reverse proxy.
 ├── internal
 │   └── domain
 │       ├── load_balancer.go       ← Load balancer logic implementation(Least Connection Strategy).
@@ -112,8 +108,8 @@ load_balancer    | Load Balancer listening on port 8080
 │       └── server_test.go         ← Unit Tests for server functionality.
 │       ├── server_pool.go         ← Server pool for maintaining a list of servers.
 │   └── common
-│       ├── env_vars.go                ← Utility functions for environment variable management.
-│       ├── env_vars_test.go           ← Tests for environment variable utility functions.
+│       ├── env_vars.go            ← Utility functions for environment variable management.
+│       ├── env_vars_test.go       ← Tests for environment variable utility functions.
 │       ├── srvvidgen.go           ← Server ID generation logic(Hash value Server URL and Port).
 │       └── srvvidgen_test.go      ← Unit Tests for server ID generation.
 │   └── transport
