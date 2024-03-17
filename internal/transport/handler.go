@@ -1,19 +1,17 @@
 package transport
 
 import (
-	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/ashtishad/golift/internal/domain"
 )
 
-func ProxyRequestHandler(serverPool domain.ServerPooler) http.HandlerFunc {
+func ProxyRequestHandler(serverPool domain.ServerPooler, l *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Print("sewhrnwkj")
-		fmt.Println("hwgwejkrhmjk")
 		targetServer := serverPool.SelectServer()
 		if targetServer == nil {
+			l.Error("target server unavailable", "srv", targetServer.GetURL())
 			http.Error(w, "service unavailable", http.StatusServiceUnavailable)
 			return
 		}
