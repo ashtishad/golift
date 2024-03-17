@@ -58,23 +58,13 @@ GoLift implements this refined strategy as follows:
 
 ### How To Run The App
 
-###### Option 1: Using Makefile
+###### Using Makefile
 
 To run the application using the Makefile:
 
 1. Open your terminal and navigate to the project's root directory.
 2. (Optional) Adjust the environment variables in the Makefile as necessary to fit your setup.
 3. Execute the command: `make run`
-
-
-###### Option 2: Using Docker
-
-To run the application using Docker:
-
-1. Ensure the Docker Desktop application is running.
-2. Open your terminal and navigate to the project's root directory.
-3. Build the Docker image for the application by executing: `docker build -t golift:latest .`
-4. Start the application using Docker Compose with the command: `docker compose up`
 
 <p align="right"><a href="#go-lift">↑ Top</a></p>
 

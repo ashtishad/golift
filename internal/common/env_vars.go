@@ -1,50 +1,57 @@
 package common
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"strconv"
 )
 
-// GetPorts retrieves the starting and load balancer port numbers from environment variables.
-// If environment variables are not set or contain invalid values, it defaults to predefined ports.
-// STARTING_PORT is the first port for n number of server instances, and LOAD_BALANCER_PORT is for the load balancer.
-// Defaults: startingPort :8000 and loadBalancerPort :8080
-func GetPorts() (int, int) {
-	startingPort := 8000     // Default starting port
-	loadBalancerPort := 8080 // Default load balancer port
-
-	if sp, exists := os.LookupEnv("STARTING_PORT"); exists {
-		if p, err := strconv.Atoi(sp); err == nil {
-			startingPort = p
-		} else {
-			log.Printf("invalid STARTING_PORT value, using default %d\n", startingPort)
-		}
-	}
-
-	if lp, exists := os.LookupEnv("LOAD_BALANCER_PORT"); exists {
-		if p, err := strconv.Atoi(lp); err == nil {
-			loadBalancerPort = p
-		} else {
-			log.Printf("invalid LOAD_BALANCER_PORT value, using default %d\n", loadBalancerPort)
-		}
-	}
-
-	return startingPort, loadBalancerPort
+// Config holds environment-based configuration parameters
+type Config struct {
+	APIHost          string
+	NumOfServers     int
+	StartingPort     int
+	LoadBalancerPort string
 }
 
-// GetServerCount retrieves the desired number of server instances to be launched.
-// It returns a default count of 5 if the environment variable "NUM_OF_SERVERS" is not set or contains an invalid value.
-func GetServerCount() int {
-	srvCnt := 5
+// LoadConfig loads the configuration with defaults.
+func LoadConfig(l *slog.Logger) *Config {
+	config := Config{
+		APIHost:          "127.0.0.1",
+		NumOfServers:     5,
+		StartingPort:     8000,
+		LoadBalancerPort: "8080",
+	}
 
-	if sp, exists := os.LookupEnv("NUM_OF_SERVERS"); exists {
-		if cnt, err := strconv.Atoi(sp); err == nil {
-			srvCnt = cnt
+	requiredVars := []string{"API_HOST", "STARTING_PORT", "LOAD_BALANCER_PORT", "NUM_OF_SERVERS"}
+
+	for _, varName := range requiredVars {
+		value := os.Getenv(varName)
+		if value != "" {
+			switch varName {
+			case "API_HOST":
+				config.APIHost = value
+			case "STARTING_PORT":
+				port, err := strconv.Atoi(value)
+				if err != nil {
+					l.Error("invalid STARTING_PORT", "err", err, "port", port) // Log error & continue
+					continue
+				}
+				config.StartingPort = port
+			case "LOAD_BALANCER_PORT":
+				config.LoadBalancerPort = value
+			case "NUM_OF_SERVERS":
+				num, err := strconv.Atoi(value)
+				if err != nil {
+					l.Error("invalid NUM_OF_SERVERs", "err", err, "srv_cnt", num)
+					continue
+				}
+				config.NumOfServers = num
+			}
 		} else {
-			log.Printf("invalid NUM_OF_SERVERS value, using default %d\n", srvCnt)
+			l.Warn("environment variable is not defined. Using default", "varName", varName)
 		}
 	}
 
-	return srvCnt
+	return &config
 }

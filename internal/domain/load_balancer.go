@@ -20,7 +20,6 @@ type LeastConnection struct {
 // 3: If multiple servers share the lowest count, employ Round Robin to assign the request.
 // 4. If no servers are alive or available, return nil.
 func (lc *LeastConnection) SelectServer(servers []Server) Server {
-	// Find the minimum number of connections.
 	minConns := int(^uint(0) >> 1)
 	var candidates []Server
 

@@ -1,16 +1,17 @@
 package transport
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/ashtishad/golift/internal/domain"
 )
 
-func ProxyRequestHandler(serverPool domain.ServerPooler) http.HandlerFunc {
+func ProxyRequestHandler(serverPool domain.ServerPooler, l *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Select a server based on the load balancing algorithm.
 		targetServer := serverPool.SelectServer()
 		if targetServer == nil {
+			l.Error("target server unavailable", "srv", targetServer.GetURL())
 			http.Error(w, "service unavailable", http.StatusServiceUnavailable)
 			return
 		}

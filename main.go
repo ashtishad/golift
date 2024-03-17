@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -19,12 +19,17 @@ import (
 )
 
 func main() {
-	startingPort, loadBalancerPort := common.GetPorts()
-	srvCnt := common.GetServerCount()
+	// init slogger
+	handlerOpts := common.GetSlogConf()
+	logger := slog.New(slog.NewTextHandler(os.Stdout, handlerOpts))
+	slog.SetDefault(logger)
+
+	// load config
+	conf := common.LoadConfig(logger)
 
 	// Start servers and load balancer.
-	servers := startServers(startingPort, srvCnt)
-	go startLoadBalancer(loadBalancerPort, startingPort, srvCnt)
+	servers := startServers(conf, logger)
+	go startLoadBalancer(conf, logger)
 
 	// Setup channel to listen for OS interrupt signals for graceful shutdown.
 	quitChan := make(chan os.Signal, 1)
@@ -46,13 +51,16 @@ func main() {
 }
 
 // startServers launches n number of HTTP servers and returns them for management.
-func startServers(startingPort int, n int) []*http.Server {
+func startServers(conf *common.Config, l *slog.Logger) []*http.Server {
+	startingPort := conf.StartingPort
+	n := conf.NumOfServers
+
 	servers := make([]*http.Server, 0, n)
 
-	for i := range n {
-		srv := &http.Server{
-			Addr: net.JoinHostPort("", strconv.Itoa(startingPort+i)),
-			Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	for i := 0; i < n; i++ {
+		server := &http.Server{
+			Addr: fmt.Sprintf(":%d", startingPort+i),
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				_, _ = fmt.Fprintf(w, "Hello World from server on port %d!", startingPort+i)
 			}),
 			ReadTimeout:       5 * time.Second,
@@ -61,54 +69,59 @@ func startServers(startingPort int, n int) []*http.Server {
 			ReadHeaderTimeout: 2 * time.Second,
 		}
 
-		servers = append(servers, srv)
+		servers = append(servers, server)
 
 		go func(s *http.Server) {
 			if err := s.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-				log.Fatalf("failed to start server: %v", err)
+				l.Error("failed to start the server", "err", err)
+				os.Exit(1)
 			}
-		}(srv)
+		}(server)
 
-		log.Printf("Server-%d listening on port %s", i+1, srv.Addr)
+		l.Info(fmt.Sprintf("Server-%d listening at", i+1), "addr", server.Addr)
 	}
 
 	return servers
 }
 
-func startLoadBalancer(loadBalancerPort, port, srvCnt int) {
-	lc := domain.LeastConnection{}
-	serverPool := domain.NewServerPool(&lc, srvCnt)
+func startLoadBalancer(conf *common.Config, l *slog.Logger) {
+	loadBalancerPort := conf.LoadBalancerPort
+	startingPort := conf.StartingPort
+	srvCnt := conf.NumOfServers
 
-	for range srvCnt {
-		port++
+	lc := domain.LeastConnection{}
+	serverPool := domain.NewServerPool(&lc, srvCnt, l)
+
+	for i := 0; i < srvCnt; i++ {
+		port := startingPort + i
 		serverURL := fmt.Sprintf("http://localhost:%d", port)
 		srv, err := domain.NewServer(serverURL)
+
 		if err != nil {
-			log.Fatalf("error creating server instance for URL '%s': %v", serverURL, err)
+			l.Error("error creating server instances", "url", serverURL, "err", err)
 		}
 
-		if spErr := serverPool.AddServer(srv); spErr != nil {
+		if err := serverPool.AddServer(srv); err != nil {
 			return
 		}
 	}
 
 	// Setup and start the load balancer HTTP server.
-	srv := &http.Server{
-		Addr:              net.JoinHostPort(os.Getenv("API_HOST"), strconv.Itoa(loadBalancerPort)),
-		Handler:           nil,
-		ReadTimeout:       5 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       15 * time.Second,
-		ReadHeaderTimeout: 2 * time.Second,
+	handler := transport.ProxyRequestHandler(serverPool, l)
+	http.HandleFunc("/", handler)
+
+	// Create a custom http.Server with timeouts
+	s := &http.Server{
+		Addr:         net.JoinHostPort(conf.APIHost, loadBalancerPort),
+		Handler:      handler,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
 	}
 
-	router := http.NewServeMux()
-	http.HandleFunc("GET /", transport.ProxyRequestHandler(serverPool))
-	srv.Handler = router
+	l.Info("Load balancer listening at", "addr", s.Addr)
 
-	log.Printf("Load Balancer listening on port %d", loadBalancerPort)
-
-	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatalf("failed to start load balancer: %v", err)
+	if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		l.Error("failed to start load balancer", "err", err)
 	}
 }
