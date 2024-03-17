@@ -15,41 +15,39 @@ linters:
   disable-all: true
 
   enable:
+    # bugs/error
     - staticcheck
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
     - revive
-    - stylecheck
-    - cyclop
-    - prealloc
-    - dupl
-    - goimports
-    - nilnil
-    - tagalign
-    - wrapcheck
+    - govet
+    - errcheck
     - gosec
-    - asciicheck
-    - bodyclose
-    - nakedret
-    - durationcheck
-    - errname
-    - exportloopref
-    - forcetypeassert
-    - goconst
+    - dupl
+
+    # performance
     - gocritic
+    - prealloc
+
+    # style, formatting
+    - stylecheck
+    - goconst
+    - gofmt
     - tagliatelle
-    - lll
-    - funlen
 
 linters-settings:
-  cyclop:
-    max-complexity: 14
-    package-average: 6.0
-    skip-tests: true
-  nakedret:
-    # Make an issue if func has more lines of code than this setting, and it has naked returns.
-    max-func-lines: 30
-  wsl:
-    allow-cuddle-declarations: true
+  errcheck:
+    # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
+    # Such cases aren't reported by default.
+    # Default: false
+    check-type-assertions: true
+  gofmt:
+    # Apply the rewrite rules to the source before reformatting.
+    # https://pkg.go.dev/cmd/gofmt
+    # Default: []
+    rewrite-rules:
+      - pattern: 'interface{}'
+        replacement: 'any'
+      - pattern: 'a[b:len(a)]'
+        replacement: 'a[b:]'
+  dupl:
+    # Tokens count to trigger issue, Default: 150
+    threshold: 100
