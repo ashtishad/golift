@@ -73,8 +73,7 @@ To run the application using Docker:
 
 1. Ensure the Docker Desktop application is running.
 2. Open your terminal and navigate to the project's root directory.
-3. Build the Docker image for the application by executing: `docker build -t golift:latest .`
-4. Start the application using Docker Compose with the command: `docker compose up`
+3. Start the application using Docker Compose with the command: `docker-compose up`
 
 <p align="right"><a href="#go-lift">↑ Top</a></p>
 
