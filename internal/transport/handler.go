@@ -23,6 +23,14 @@ func ProxyRequestHandler(serverPool domain.ServerPooler, l *slog.Logger) http.Ha
 		r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
 		r.Host = targetURL.Host
 
+		// Add X-Forwarded-For and X-Forwarded-Proto
+		r.Header.Set("X-Forwarded-For", r.RemoteAddr)
+		if r.TLS != nil {
+			r.Header.Set("X-Forwarded-Proto", "https")
+		} else {
+			r.Header.Set("X-Forwarded-Proto", "http")
+		}
+
 		// Serve the request using reverseProxy of server instance.
 		targetServer.Serve(w, r)
 	}
